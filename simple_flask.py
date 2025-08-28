@@ -32,7 +32,48 @@ def get_by_page():
     except:
         return "Dunno?"
 
+@app.route("/crud", methods = ["POST"])
+def add_pokemon():
+    if not request.args.get("action"):
+        return "Whaddya want me to do here?"
     
+    if not request.get_json():
+        return "Please use a valid Pokemon array."
+    else:
+        pokemon = request.get_json()
+        try:
+            action = request.args.get("action")
+            if action == "add":
+                with open("static/all_the_pokemon.json", "r") as pokedex:
+                    pokedex_json = json.load(pokedex)
+                with open("static/all_the_pokemon.json", "w") as pokedex:
+                    pokedex_json.append(pokemon)
+                    json.dump(pokedex_json, pokedex)
+                return "Pokemon added to Pokedex."
+                
+            elif action == "delete":
+                with open("static/all_the_pokemon.json", "r") as pokedex:
+                    pokedex_json = json.load(pokedex)
+                with open("static/all_the_pokemon.json", "w") as pokedex:
+                    pokedex_json = [mon for mon in pokedex_json if mon["name"] != pokemon["name"]]
+                    json.dump(pokedex_json, pokedex)
+                return f"{pokemon['name']} deleted."
+                        
+            elif action == "edit":
+                with open("static/all_the_pokemon.json", "r") as pokedex:
+                    pokedex_json = json.load(pokedex)
+                with open("static/all_the_pokemon.json", "w") as pokedex:
+                    for mon in pokedex_json:
+                        if pokemon["name"] == mon["name"]:
+                            mon.update(pokemon)
+                    json.dump(pokedex_json, pokedex)
+                return f"{pokemon['name']} updated."
+            else:
+                return "Please choose a valid action: add, edit, or delete."
+
+        except:
+            return "Not much of a Pokemon trainer, are you?"
+
 #Run app
 if __name__ == "__main__":
     app.run(port=5000, debug = True)
